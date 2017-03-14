@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="windows-1252" />
+	<title>HTML5 Bacteria sim</title>
+</head>
+<body>
+<h1>HTML5 Bacteria sim</h1>
+<form action="javascript:" novalidate="novalidate">
+  Bakterie størrelse: <input type="range" id="str" step="1" value="3" min="3" max="15" onchange="javascript:startSim() " /><br />
+  <input type="button" onclick="javascript:startSim();" value="Start simulation"/>
+  <input type="button" onclick="javascript:nulstil();" value="Nulstil"/>
+</form>
+<div id="status"></div>
+<canvas id="can" width="842" height="550" style="border:solid 1px black" onclick="javascript:canvasClick(event)"></canvas>
+<script type="text/javascript">
+	var dcanvas = document.getElementById("can");
+	var dcontext = dcanvas.getContext("2d");
+	var tid = document.getElementById("tid");
+
+	var BacteriaSize = document.getElementById("str").value;
+	var GameArea = new Array(parseInt(dcanvas.width/BacteriaSize));
+	
+	nulstil();
+	GameArea[20][20] = true;
+	GameArea[1][100] = true;
+	GameArea[100][100] = true;
+	drawGameArray();
+	function nulstil()
+	{
+		GameArea=new Array(parseInt(dcanvas.width/BacteriaSize));
+		for (i = 0; i < GameArea.length; i++)
+			GameArea[i] = new Array (2);
+		drawGameArray();
+	}
+	
+	function startSim() 
+	{
+		BacteriaSize = document.getElementById("str").value;
+		timePass();
+		drawGameArray();		
+	}
+	
+	function timePass()
+	{
+		for (var x =0;x<parseInt(dcanvas.width/BacteriaSize);x++)
+			for (var y=0;y<parseInt(dcanvas.height/BacteriaSize);y++)
+			{
+				
+				var randomnumber=0;
+				if (GameArea[x][y])
+					randomnumber=Math.floor(Math.random()*8)+1;
+					
+				switch (randomnumber)
+				{
+					case 1:
+						if (x-1>0 && y+1<parseInt(dcanvas.height/BacteriaSize))
+							GameArea[x-1][y+1] = !GameArea[x-1][y+1];
+						break;
+					case 2:
+						if (y+1<parseInt(dcanvas.height/BacteriaSize))
+							GameArea[x][y+1] = !GameArea[x][y+1];
+						break;
+					case 3:
+						if (x+1<parseInt(dcanvas.width/BacteriaSize) && y+1<parseInt(dcanvas.height/BacteriaSize))
+							GameArea[x+1][y+1] = !GameArea[x+1][y+1];
+						break;
+					case 4:
+						if (x+1<parseInt(dcanvas.width/BacteriaSize))
+							GameArea[x+1][y] = !GameArea[x+1][y];
+						break;
+					case 5:
+						if (x+1<parseInt(dcanvas.width/BacteriaSize) && y-1>0)
+							GameArea[x+1][y-1] = !GameArea[x+1][y-1];
+						break;
+					case 6:
+						if (y-1>0)
+							GameArea[x][y-1] = !GameArea[x][y-1];
+						break;
+					case 7:
+						if (x-1>0 && y-1>0)
+							GameArea[x-1][y-1] = !GameArea[x-1][y-1];
+						break;
+					case 8:
+						if (x-1>0)
+							GameArea[x-1][y] = !GameArea[x-1][y];
+						break;
+					default:
+				}
+			}
+	}
+	
+	function drawGameArray()
+	{
+		dcanvas.height+=0;
+		dcontext.beginPath();
+		for (var x =0;x<parseInt(dcanvas.width/BacteriaSize);x++)
+			for (var y=0;y<parseInt(dcanvas.height/BacteriaSize);y++)
+			{
+				if (GameArea[x][y])
+					dcontext.arc(x*BacteriaSize,y*BacteriaSize,BacteriaSize,0,2*Math.PI);
+			}
+		dcontext.fill();
+	}
+	
+    function getMousePos(canvas, evt) 
+	{
+		var rect = canvas.getBoundingClientRect();
+		return{x: evt.clientX - rect.left,	y: evt.clientY - rect.top};
+    }
+
+    window.onload = function() 
+	{
+		var canvas = document.getElementById('can');
+		var context = canvas.getContext('2d');
+		canvas.addEventListener('click',onClick, false);
+    };
+	
+	function onClick(event)
+	{
+		var mousePos = getMousePos(dcanvas, event);
+		GameArea[parseInt(mousePos.x/BacteriaSize)][parseInt(mousePos.y/BacteriaSize)] = true;
+		drawGameArray();
+		writeMessage(dcanvas, message);
+	}
+</script>
+<footer>(c) 2012 Jeppe M. Led</footer>
+</body>
+</html>

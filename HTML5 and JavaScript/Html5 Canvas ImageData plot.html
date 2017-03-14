@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="windows-1252" />
+	<title>HTML5 Canvas test - ImageData plot</title>
+</head>
+<body>
+<h1>HTML5 Canvas test - ImageData plot</h1>
+timer: <div id="tid">0</div>
+<form action="javascript:" novalidate="novalidate">
+  Kvalitet: <input type="number" id="kvalitet" value="0.35" max="2" min="0.1" step="0.02" />
+  <input type="button" onclick="javascript:startIterationer();" />
+</form>
+<canvas id="can" width="842" height="550"></canvas>
+<script type="text/javascript">
+	var dcanvas = document.getElementById("can");
+	var dcontext = dcanvas.getContext("2d");
+	var tid = document.getElementById("tid");
+	
+	function startIterationer()
+	{
+		var timeStart = new Date(); // Gemmer starttidspunkt (år, måneder, sekunder o.a.)
+		dcanvas.width = dcanvas.width; // Sletter canvas
+		var kvalitet = Number(document.getElementById("kvalitet").value); // Henter kvalitet fra input felt
+		var imageData = dcontext.createImageData(dcanvas.width, dcanvas.height);
+		
+		for (var x=0;x<dcanvas.width;x=x+kvalitet)
+		{
+			for (var y=0;y<dcanvas.height;y=y+kvalitet)
+			{
+				if (y>0.02*x*x)
+				{
+					var calcColor=0|0; // Farver i nuancer af grå
+				}
+				else
+				{
+					var calcColor=200|0; // Farver i nuancer af grå
+					// var calcColor=200|0;// farver mørk grå
+				}
+				setPixel(imageData,x|0,(dcanvas.height-y)|0,calcColor,calcColor,calcColor,255);
+				
+			}
+		}
+		
+		dcontext.putImageData(imageData, 0, 0);
+		var timeEnd = new Date();
+		
+		var timedifference = (timeEnd - timeStart)/100;
+		tid.innerHTML = timedifference + " sekunder";
+	}
+	
+	function setPixel(imageData, x, y, r, g, b, a) 
+	{
+		var index = (x + y * imageData.width) * 4;
+		imageData.data[index+0] = r;
+		imageData.data[index+1] = g;
+		imageData.data[index+2] = b;
+		imageData.data[index+3] = a;
+	}
+</script>
+<footer>(c) 2012 Jeppe M. Led</footer>
+</body>
+</html>

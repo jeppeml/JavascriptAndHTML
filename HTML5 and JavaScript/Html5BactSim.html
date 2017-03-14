@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="windows-1252" />
+	<title>HTML5 Bacteria sim</title>
+</head>
+<body>
+<h1>HTML5 Bacteria sim</h1>
+<form action="javascript:" novalidate="novalidate">
+  Bakterie størrelse: <input type="range" id="str" step="1" value="5" min="3" max="15" onchange="javascript:startSim();" /><br />
+  <input type="button" onclick="javascript:startSim();" value="Start simulation"/>
+  <input type="button" onclick="javascript:nulstil();" value="Nulstil"/>
+</form>
+<div id="status"> </div>
+<div id="debug" style="visibility:hidden;display:none"> </div>
+<div id="Div1" style="visibility:hidden;display:none"> </div>
+<canvas id="can" width="842" height="550" style="border:solid 1px black"> </canvas>
+<script type="text/javascript">
+	var dcanvas = document.getElementById("can");
+	var dcontext = dcanvas.getContext("2d");
+	var tid = document.getElementById("tid");
+	var debugElement = document.getElementById("debug");
+
+	var BacteriaSize = document.getElementById("str").value;
+	var GameArea = new Array(parseInt(dcanvas.width/BacteriaSize));
+	var BacteriaArray = [];
+	var debugOn = false;
+
+    // Optimize:
+	var emptybacteria = new Bacteria(null, null, null, "rgb(255,255,255)", null, null, null, null);
+
+	if (debugOn) {
+	    debugElement.style.visibility = "visible";
+	    debugElement.style.display = "block";
+	}
+	
+	nulstil();
+	GameArea[15][15] = new Bacteria("Gnarl", 15, 15, "rgb(255,128,0)", "rgb(0,0,255)", "rgb(0,255,0)", 2, 15);
+	BacteriaArray.push(GameArea[15][15]);
+	GameArea[19][19] = new Bacteria("Fliggo", 19, 19, "rgb(0,128,255)", "rgb(255,128,0)", "rgb(0,255,0)", 2, 15);
+	BacteriaArray.push(GameArea[19][19]);
+	drawGameArray(); 
+	
+	Object.prototype.removeItem = function (key) 
+	{
+	    if (!this.hasOwnProperty(key))
+	        return;
+
+		if (isNaN(parseInt(key)) || !(this instanceof Array))
+		    delete this[key];
+		else
+		    this.splice(key, 1);
+	};
+
+	function Bacteria(type, x, y, color, enemyColor, symbiosisColor, life, strength) // Object oriented pattern
+	{
+		this.type = type;
+		this.color = color;
+		this.enemyColor = enemyColor;
+		this.symbiosisColor = symbiosisColor;
+		this.life = life;
+		this.startLife = life;
+		this.strength=strength;
+		this.x=x;
+		this.y=y;
+		
+	    //Optimization
+		this.randomnumber = 0;
+		this.newX = -1;
+		this.newY = -1;
+
+		this.die = function() 
+		{
+		    GameArea[this.x][this.y] = emptybacteria;
+			BacteriaArray.removeItem(this);
+			delete this;
+		};
+		
+		this.grow = function() 
+		{
+			this.randomnumber=Math.floor(Math.random()*8)+1;
+			this.newX = -1;
+			this.newY = -1;
+			switch (this.randomnumber)
+			{
+				case 1:
+					if (x-1>0 && y+1<parseInt(dcanvas.height/BacteriaSize))
+					{
+						this.newX = x-1;
+						this.newY = y+1;
+					}
+					break;
+				case 2:
+					if (y+1<parseInt(dcanvas.height/BacteriaSize))
+					{
+						this.newX = x;
+						this.newY = y+1;
+					}
+					break;
+				case 3:
+					if ((x+1)<parseInt(dcanvas.width/BacteriaSize) && (y+1)<(parseInt(dcanvas.height/BacteriaSize)))
+					{
+						this.newX = x+1;
+						this.newY = y+1;
+					}
+					break;
+				case 4:
+					if (x+1<parseInt(dcanvas.width/BacteriaSize))
+					{
+						this.newX = x+1;
+						this.newY = y;
+					}
+					break;
+				case 5:
+					if (x+1<parseInt(dcanvas.width/BacteriaSize) && y-1>0)
+					{
+						this.newX = x+1;
+						this.newY = y-1;
+					}
+					break;
+				case 6:
+					if (y-1>0)
+					{
+						this.newX = x;
+						this.newY = y-1;
+					}
+					break;
+				case 7:
+					if (x-1>0 && y-1>0)
+					{
+						this.newX = x-1;
+						this.newY = y-1;
+					}
+					break;
+				case 8:
+					if (x-1>0)
+					{
+						this.newX = x-1;
+						this.newY = y;
+					}
+					break;
+				default:
+				this.newX=0;
+				this.newX=0;
+			}	
+			
+			if (this.newX>0 && this.newY>0)
+			{
+				// Hvis symbiose, s� s�t random til n�ste case
+				if (GameArea[this.newX][this.newY].color == this.symbiosisColor)
+				{
+					//this.grow();
+				}// Hvis enemy, s� k�mp mod enemy, st�rst strength vinder, mister forskellen i life
+				else if (GameArea[this.newX][this.newY].color == this.enemyColor)
+				{
+					if (GameArea[this.newX][this.newY].strength>this.strength) // Fjenden vinder
+					{
+						this.life += GameArea[this.newX][this.newY].strength-this.strength;
+						if (this.life<1)
+							this.die();
+					}
+					else if (GameArea[this.newX][this.newY].strength<this.strength) // Denne vinder
+					{
+						GameArea[this.newX][this.newY].life += this.strength-GameArea[x-1][y+1].strength;
+						if (GameArea[this.newX][this.newY].life<1)
+						{
+							GameArea[this.newX][this.newY].die();
+							GameArea[this.newX][this.newY] = new Bacteria(this.type, this.newX, this.newY, this.color, this.enemyColor, this.symbiosisColor, this.startLife, this.strength);
+							BacteriaArray.push(GameArea[this.newX][this.newY]);
+						}
+					}
+					else // begge mister 1 liv, ingen formerer sig.
+					{
+						this.life--;
+						GameArea[this.newX][this.newY].life--;
+						if (this.life<1)
+							this.die();
+						if (GameArea[this.newX][this.newY].life<1)
+							GameArea[this.newX][this.newY].die();
+					}
+				}
+				else if (GameArea[this.newX][this.newY].color == "rgb(255,255,255)") // s� er pladsen tom, formerer sig!
+				{
+					GameArea[this.newX][this.newY] = new Bacteria(this.type, this.newX, this.newY, this.color, this.enemyColor, this.symbiosisColor, this.startLife, this.strength);
+					BacteriaArray.push(GameArea[this.newX][this.newY]);
+				}
+				else // ukendt modstander. den med mest styrke dr�ber den anden, men formerer sig ikke
+				{
+					if (GameArea[this.newX][this.newY].strength>this.strength) // Fjenden vinder
+					{
+						this.die();
+					}
+					else if (GameArea[this.newX][this.newY].strength<this.strength) // Denne vinder
+					{
+						GameArea[this.newX][this.newY].die();
+					}
+					else
+					{
+						// ingenting sker, hvis ingen vinder
+					}
+				}
+			}
+			// vi d�r lidt hver dag
+			this.life--;
+			if (this.life<1)
+				this.die();
+		};
+	}
+	
+	function nulstil()
+	{
+	    GameArea = new Array(parseInt(dcanvas.width / BacteriaSize));
+		for (i = 0; i < GameArea.length; i++)
+		{
+			GameArea[i] = new Array (2);
+		}
+		for (var x =0;x<parseInt(dcanvas.width/BacteriaSize);x++)
+		for (var y=0;y<parseInt(dcanvas.height/BacteriaSize);y++)
+		{
+		    GameArea[x][y] = emptybacteria;
+		}
+			
+		drawGameArray();
+	}
+	
+	function startSim() 
+	{
+		timePass();
+		var status = document.getElementById("status");
+		status.innerHTML = "antal: " + BacteriaArray.length;
+		drawGameArray();		
+	}
+	
+	function timePass()
+	{
+		for (var i=0;i<BacteriaArray.length;i++)
+		{
+			BacteriaArray[i].grow();
+		}
+	}
+	
+	function drawGameArray()
+	{
+		dcanvas.height+=0; // Nulstiller canvas
+		
+		for (var x =0;x<parseInt(dcanvas.width/BacteriaSize);x++)
+			for (var y=0;y<parseInt(dcanvas.height/BacteriaSize);y++)
+			{
+				if (GameArea[x][y].color != "rgb(255,255,255)")
+				{
+					dcontext.fillStyle =  GameArea[x][y].color;
+					//dcontext.beginPath();
+					dcontext.fillRect(parseInt(x * BacteriaSize), parseInt(y * BacteriaSize), BacteriaSize, BacteriaSize);
+					//dcontext.arc(parseInt(x*BacteriaSize),parseInt(y*BacteriaSize),BacteriaSize,0,2*Math.PI);
+					//dcontext.fill();
+				}
+				
+			}
+		
+	}
+	
+    function getMousePos(canvas, evt) 
+	{
+		var rect = canvas.getBoundingClientRect();
+		return{x: evt.clientX - rect.left,	y: evt.clientY - rect.top};
+    }
+
+    window.onload = function() 
+	{
+		var canvas = document.getElementById('can');
+		var context = canvas.getContext('2d');
+		canvas.addEventListener('click',onClick, false);
+    };
+	
+	function onClick(event)
+	{
+	    var mousePos = getMousePos(dcanvas, event);
+	    GameArea[parseInt(mousePos.x / BacteriaSize)][parseInt(mousePos.y / BacteriaSize)] =
+            new Bacteria("Gnarl", parseInt(mousePos.x / BacteriaSize), parseInt(mousePos.y / BacteriaSize), "rgb(255,128,0)", "rgb(0,0,255)", "rgb(0,255,0)", 2, 15);
+	    BacteriaArray.push(GameArea[parseInt(mousePos.x / BacteriaSize)][parseInt(mousePos.y / BacteriaSize)]);
+		drawGameArray();
+	}
+</script>
+<footer>(c) 2012 Jeppe M. Led</footer>
+</body>
+</html>

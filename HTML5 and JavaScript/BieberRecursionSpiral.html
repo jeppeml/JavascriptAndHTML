@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Polkaprikker</title>
+</head>
+<body>
+    <div id="output">Hest</div>
+    <canvas id="polkacanvas" style="border:none;height: 100%;width:100%;"></canvas>
+    <script type="text/javascript">
+        var output = document.getElementById("output");
+        var canvas = document.getElementById("polkacanvas");
+        var ctx = canvas.getContext("2d");
+        var forskydning = 30;
+        var img = new Image();
+        goForGopher();
+        setInterval(goForGopher, 4000);
+        var i = 1;
+        function goForGopher() {
+            
+            img.src = "http://orig07.deviantart.net/7d24/f/2012/022/4/e/gif_karolain_justin_bieber_by_xdaniela-d4n8ers.gif";
+            logSpiral(canvas.width / 2-12, canvas.height / 2-12, canvas.width / 2 + 100, 600 + i, 35, 180);
+            i+=10;
+           
+        }
+
+        // centerX-- X origin of the spiral.
+        // centerY-- Y origin of the spiral.
+        // radius--- Distance from origin to outer arm.
+        // sides---- Number of points or sides along the spiral's arm.
+        // coils---- Number of coils or full rotations. (Positive numbers spin clockwise, negative numbers spin counter-clockwise)
+        // rotation- Overall rotation of the spiral. ('0'=no rotation, '1'=360 degrees, '180/360'=180 degrees)
+        function logSpiral(centerX, centerY, radius, sides, coils, rotation) 
+        {
+                //
+                // Start at the center.
+                ctx.moveTo(centerX, centerY);
+                //
+                // How far to rotate around center for each side.
+                var aroundStep = coils / sides;// 0 to 1 based.
+                //
+                // Convert aroundStep to radians.
+                var aroundRadians = aroundStep * 2 * Math.PI;
+                //
+                // Convert rotation to radians.
+                rotation *= 2 * Math.PI;
+                //
+                // For every side, step around and away from center.
+                for (var i = 1; i <= sides; i++) {
+                    //
+                    // How far away from center
+                    var away = Math.pow(radius, i / sides);
+                    //
+                    // How far around the center.
+                    var around = i * aroundRadians + rotation;
+                    //
+                    // Convert 'around' and 'away' to X and Y.
+                    var x = centerX + Math.cos(around) * away;
+                    var y = centerY + Math.sin(around) * away;
+                    //
+                    // Now that you know it, do it.
+                    setTimeout(drawbieber, i*10, ctx, img, x,y);
+                }
+               // ctx.stroke();
+            }
+        function drawbieber(context, image, xcoord, ycoord)
+        {
+            context.drawImage(image, xcoord, ycoord, 25, 25);
+        }
+
+        output.innerHTML = "Alt er godt! :) *GK*";
+    </script>
+</body>
+</html>

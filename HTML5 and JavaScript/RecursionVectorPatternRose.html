@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Rekursive mønstre</title>
+</head>
+<body>
+    <canvas id="mitcanvas" height="600" width="800"></canvas>
+    <div id="output">Ingenting virker :(</div>
+    <script type="text/javascript">
+        var output = document.getElementById("output");
+        var canvas = document.getElementById("mitcanvas");
+        var ctx = canvas.getContext("2d");
+        var currentx = 200;
+        var currenty = 200;
+
+        ctx.moveTo(currentx, currenty);
+        rekursivfunktion(150, 2);
+        ctx.stroke();
+
+        function rekursivfunktion(length, angle)
+        {
+            tegnVektor(length, angle);
+            if (length < 1)
+            {
+                return 1;
+            }
+            else
+            {
+                rekursivfunktion(length / 0.001, angle + 1.0012);
+            }
+                
+        }
+
+        function tegnVektor(length, angle)
+        {
+            var vwidth = length * Math.cos(angle*180/Math.PI);
+            var vheigth = length * Math.sin(angle * 180 / Math.PI);
+            currentx = currentx + vwidth;
+            currenty = currenty + vheigth;
+
+            ctx.lineTo(currentx, currenty);
+            
+        }
+        output.innerHTML = "Alt virker!";
+    </script>
+</body>
+</html>

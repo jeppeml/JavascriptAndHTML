@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="windows-1252" />
+	<title>HTML5 Canvas test</title>
+</head>
+<body>
+<h1>HTML5 Canvas test</h1>
+timer: <div id="tid">w</div>
+<form action="javascript:" novalidate="novalidate">
+  Antal iterationer: <input type="number" id="iterationer" value="5" />
+  <input type="button" onclick="javascript:startIterationer();" />
+</form>
+<canvas id="can" width="842" height="550"></canvas>
+<script type="text/javascript">
+	var dcanvas = document.getElementById("can");
+	var dcontext = dcanvas.getContext("2d");
+	var tid = document.getElementById("tid");
+	
+	function startIterationer()
+	{
+		var timeStart = new Date();
+		dcanvas.width = dcanvas.width;
+		var antalIterationer = document.getElementById("iterationer").value;
+		DrawTrian(0, 550, 842, 550, 421, 0, antalIterationer);
+		dcontext.strokeStyle = "#000";
+		dcontext.stroke();
+		var timeEnd = new Date();
+		
+		var timedifference = (timeEnd - timeStart)/100;
+		tid.innerHTML = timedifference + " sekunder";
+	}
+
+	function DrawTrian(x1, y1, x2, y2, x3, y3, stopIt)
+    {
+        DrawLine(x1, y1, x2, y2);
+        DrawLine(x2, y2, x3, y3);
+        DrawLine(x1, y1, x3, y3);
+        if (stopIt>0)
+        {
+            stopIt -= 1;
+		
+			var tilfDiv = 2
+			var x1Small = (x1 + x2)/tilfDiv;
+			var x2Small = (x2 + x3)/tilfDiv;
+			var x3Small = (x1 + x3)/tilfDiv;
+			var y1Small = (y1 + y2)/tilfDiv;
+			var y2Small = (y2 + y3)/tilfDiv;
+			var y3Small = (y1 + y3)/tilfDiv;
+			
+            DrawTrian(x1, y1, x1Small, y1Small, x3Small, y3Small, stopIt);
+            DrawTrian(x2, y2, x1Small, y1Small, x2Small, y2Small, stopIt);
+			DrawTrian(x3, y3, x3Small, y3Small, x2Small, y2Small, stopIt);
+        }
+    }
+	
+	function DrawLine(x1, y1, x2, y2)
+    {
+		dcontext.moveTo(x1, y1);
+		dcontext.lineTo(x2, y2);
+    }
+		
+</script>
+<footer>(c) 2012 Jeppe M. Led</footer>
+</body>
+</html>

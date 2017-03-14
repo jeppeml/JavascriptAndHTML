@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="windows-1252" />
+	<title>HTML5 Canvas test - Fortsættende streger</title>
+</head>
+<body>
+<h1>HTML5 Canvas test - Fortsættende streger</h1>
+timer: <div id="tid">0</div>
+<form action="javascript:" novalidate="novalidate">
+  <input type="button" onclick="javascript:startIterationer();" value="start"/>
+</form>
+<canvas id="can" width="842" height="550"></canvas>
+<script type="text/javascript">
+	var dcanvas = document.getElementById("can");
+	var dcontext = dcanvas.getContext("2d");
+	var tid = document.getElementById("tid");
+	
+	function startIterationer()
+	{
+		var timeStart = new Date(); // Gemmer starttidspunkt (år, måneder, sekunder o.a.)
+		dcanvas.width = dcanvas.width; // Sletter canvas
+		dcontext.beginPath(); // Starter med at tegne en sammenhængende streg
+		dcontext.moveTo(0,dcanvas.height); // Flytter til nulpunktet, y er når x=0, tænk over det...
+		for (var x=0;x<dcanvas.width;x=x+1) // Tæller alle pixels i x-retningen
+		{
+			for (var y=0;y<dcanvas.height;y=y+1) // Tæller alle pixels i y-retningen
+			{
+				if (y==0.02*x*x) // Så er det nye punkt et af punkter på linjen
+				{
+					dcontext.lineTo(x, dcanvas.height-y); // tegn streg til punktet
+				}
+			}
+		}
+		dcontext.stroke(); // farvelæg stregen med sort, tegner på canvas
+		var timeEnd = new Date(); // sluttid registreres
+		var timedifference = (timeEnd - timeStart)/100;
+		tid.innerHTML = timedifference + " sekunder";
+	}
+</script>
+<footer>(c) 2012 Jeppe M. Led</footer>
+</body>
+</html>

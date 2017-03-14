@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="windows-1252" />
+	<title>HTML5 Canvas test</title>
+</head>
+<body>
+<h1>HTML5 Canvas test</h1>
+timer: <div id="tid">w</div>
+<form action="javascript:" novalidate="novalidate">
+  Zoom: <input type="range" id="Zoom" step="0.2" value="1.2" min="0.2" max="10.0" /><br />
+  Antal tråde (til flerkernede CPUer): 
+  <select id="Threads">
+	<option>1</option>
+	<option>2</option>
+	<option>4</option>
+	<option>6</option>
+	<option>8</option>
+  </select>
+  Fraktal type:
+  <select id="FractalType">
+	<option>Mandelbrot</option>
+	<option>Julia</option>
+  </select>
+  <input type="button" onclick="javascript:drawFractal();" value="Tegn fraktal"/>
+</form>
+<div id="status"></div>
+<canvas id="can" width="842" height="550"></canvas>
+<script type="text/javascript">
+	var dcanvas = document.getElementById("can");
+	var dcontext = dcanvas.getContext("2d");
+	var tid = document.getElementById("tid");
+	//var worker = new Worker("FractalWorker.js");
+	
+	function drawFractal() 
+	{
+		document.getElementById("status").innerHTML = "Starter worker...";
+		var Zoom = document.getElementById("Zoom").value;
+		var FractalType = document.getElementById("FractalType").value;
+		var Threads = document.getElementById("Threads").value;
+		for (var i=1;i<=Threads;i++)
+		{
+			var imageData = dcontext.createImageData(dcanvas.width/Threads, dcanvas.height/Threads);
+			var worker = new Worker("FractalWorker.js");
+			document.getElementById("status").innerHTML += "Arbejder på sagen...";
+			worker.postMessage({'WorkerId': i, 'ImageData': imageData, 'FractalType': FractalType, 'Zoom': Zoom});
+			document.getElementById("status").innerHTML += "Done...";
+				
+				worker.addEventListener('message', function(e) {
+					document.getElementById("status").innerHTML += 'Færdig... <br />WorkerId:' +e.data.WorkerId;
+					document.getElementById("status").innerHTML += 'Færdig... <br />ImageData:' +e.data.ImageData;
+					dcontext.putImageData(e.data.ImageData, dcanvas.width-(dcanvas.width/e.data.WorkerId), dcanvas.height-(dcanvas.height/e.data.WorkerId));
+					//dcontext.putImageData(e.data.ImageData, 0, 0);
+				}, false);
+		}
+			
+	}
+	
+	
+	
+	/*
+		for (var i=1;i<=Threads;i++)
+		{
+			var worker = new Worker("FractalWorker.js");
+			var imageData = dcontext.createImageData(dcanvas.width/Threads, dcanvas.height/Threads);
+			document.getElementById("status").innerHTML += "Tråd "+i+" arbejder på sagen...";
+			worker.postMessage({'ImageData': imageData, 'FractalType': FractalType, 'Zoom': Zoom});
+		}
+		
+	}
+	
+	worker.addEventListener('message', function(e) {
+		//dcontext.putImageData(e.data.ImageData, dcanvas.width, dcanvas.height); e.data.WorkerId
+		document.getElementById("status").innerHTML = 'Færdig... <br />' ;
+	}, false);
+	*/
+/*
+	worker.addEventListener('onMessage', function(e) 
+	{
+		document.getElementById("status").innerHTML = "Færdig...";
+		//dcontext.putImageData(e.data, 0, 0);
+	}, false);
+	*/
+	
+/*
+	function setPixel(imageData, x, y, r, g, b, a) 
+	{
+		var index = (x + y * imageData.width) * 4;
+		imageData.data[index+0] = r;
+		imageData.data[index+1] = g;
+		imageData.data[index+2] = b;
+		imageData.data[index+3] = a;
+	}
+	
+	function goForGopher() 
+	{
+		var Zoom = document.getElementById("Zoom").value;
+		var FractalType = document.getElementById("FractalType").value;
+		tid.innerHTML += "HEJ";
+		var width = dcanvas.width;
+		var height = dcanvas.height;
+		var pixelCount = 0;
+		var xFractMax = 2.5/Zoom;
+		var xFractMin = (-2.5)/Zoom;
+		var yFractMax = 2.5/Zoom;
+		var yFractMin = (-1.5)/Zoom;
+		var xStepFract = (xFractMax-xFractMin)/width;
+		var yStepFract = (yFractMax-yFractMin)/height;
+
+		var imageData = dcontext.createImageData(width, height);
+
+		var y=0;
+		for (yFract = yFractMin; yFract < yFractMax; yFract+=yStepFract) 
+		{
+			var x=0;
+			for (xFract = xFractMin; xFract < xFractMax; xFract+=xStepFract) 
+			{
+				var count = 1;
+				pixelCount++;
+				var a = xFract;
+				var b = yFract;
+				
+				while ((a*a+b*b<4) && count<30)
+				{
+					switch (FractalType)
+					{
+						case "Mandelbrot":
+							var c = a*a-b*b+xFract;
+							b=2*a*b+yFract;
+							a=c;
+						break;
+						case "Julia":
+							var c = a*a-b*b-1;
+							b=2*a*b;
+							a=c;
+						break;
+						default: // Defaults to Mandelbrot
+							var c = a*a-b*b+xFract;
+							b=2*a*b+yFract;
+							a=c;
+						break;
+					}					
+					count++;
+				}
+				if (count==30)
+				{
+					setPixel(imageData, (((xFract-xFractMin)/xStepFract)),(((yFract-yFractMin)/yStepFract)),255|0,255|0,255|0,255);
+				}
+				else if (count>0)
+				{
+					var calcColor=(count*64 % 255)|0;
+					setPixel(imageData, (((xFract-xFractMin)/xStepFract)|0),(((yFract-yFractMin)/yStepFract)|0),calcColor,calcColor,calcColor,255);
+				}
+			}
+		}
+		tid.innerHTML += "FÆRDIG! Pixels: " + pixelCount;
+		dcontext.putImageData(imageData, 0, 0);
+	}
+	
+	function DrawLine(x1, y1, x2, y2)
+    {
+		dcontext.moveTo(x1, y1);
+		dcontext.lineTo(x2, y2);
+    }
+	*/	
+</script>
+<footer>(c) 2012 Jeppe M. Led</footer>
+</body>
+</html>

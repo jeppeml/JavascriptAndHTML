@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="windows-1252" />
+	<title>HTML5 Canvas test</title>
+	<style type="text/css">
+		#can
+		{
+			background-color: #526060;
+			
+		}
+	</style>
+</head>
+<body>
+<h1>HTML5 Canvas test</h1>
+<div id="retningSnooper"></div>
+<form action="javascript:" novalidate="novalidate">
+	<canvas id="can" width="800" height="600"></canvas><br />
+	<textarea id="errorText" rows="15"></textarea>
+</form>
+
+<script type="text/javascript">
+	var retningSnooper = document.getElementById("retningSnooper");
+	var dcanvas = document.getElementById("can");
+	var dcontext = dcanvas.getContext("2d");
+	var errorText = document.getElementById("errorText");
+	var leftMove = 0;
+	var rightMove = 0;
+	var moveSpeed = 5;
+	var padHeight = 150;
+	var padWidth = 15;
+	var boldHeight = 15;;
+	var boldWidth = 15;
+	var boldSpeed = 3;
+	var gameStop = false;
+
+	// Init klasser
+	var leftPad = new Pad(15, 225, padWidth, padHeight+100);
+	var rightPad = new Pad(770, 225, padWidth, padHeight);
+	var bolden = new Bold(dcanvas.width/2-boldWidth,dcanvas.height/2-boldHeight/2, boldWidth,boldHeight);
+	
+	bolden.retning = 95;
+	bolden.hastighed = boldSpeed;
+	
+	document.onkeydown = KeyCheckKeyDown; 
+	document.onkeyup = KeyCheckKeyUp; 
+	
+	function KeyCheckKeyUp()
+	{
+	   var KeyID = event.keyCode;
+	   if (KeyID==65 || KeyID==90)
+			leftMove  = 0;
+	   if (KeyID==75 || KeyID==77)
+			rightMove = 0;
+	};
+	
+	function KeyCheckKeyDown()
+	{
+		var KeyID = event.keyCode;
+		if (KeyID==65)
+			leftMove=1;
+		if (KeyID==90)
+			leftMove=2;
+		if (KeyID==75)
+			rightMove=1;
+		if (KeyID==77)
+			rightMove=2;
+	};
+	
+	function Bold(x,y,width,height) 
+	{
+		this.drawBold = function() 
+		{
+			dcontext.fillStyle="#EEEEEE";
+			dcontext.fillRect(this.x,this.y,width,height);		
+		};
+		
+		this.moveBold = function() 
+		{
+			//retningSnooper.innerHTML = "Hastighed: " + this.hastighed + " Retning: " + this.retning +" x,y: " + this.x + " , "+this.y ;
+			this.x += this.hastighed * Math.sin((this.retning) * (Math.PI/180));
+			this.y += this.hastighed * Math.cos((this.retning) * (Math.PI/180));
+		};
+		
+		this.collisionHandler = function() 
+		{
+			var thisCenterY = this.y + (height/2);
+			
+			// Venstre check
+			if (thisCenterY>=leftPad.y && thisCenterY<=leftPad.y+leftPad.height)
+			if (this.x<leftPad.x+leftPad.width)
+			{
+				this.retning -= (this.retning*2);
+				var pixelHit = (thisCenterY - leftPad.y)/(leftPad.height/100);
+				if (pixelHit>50 || pixelHit<(-50)) {bolden.hastighed++;}
+				this.retning = this.retning - (Math.round(pixelHit)-50);
+				errorText.value += "this.retning : " + this.retning + "\n" + "pixelHit : " + pixelHit;
+				this.x = leftPad.x+leftPad.width+bolden.hastighed+1;
+			}
+			
+			// Højre check
+			if (thisCenterY>=rightPad.y && thisCenterY<=rightPad.y+rightPad.height)
+			if (this.x>rightPad.x-rightPad.width)
+			{				
+				this.retning -= (this.retning*2);
+				var pixelHit = (thisCenterY - rightPad.y)/(rightPad.height/100);
+				if (pixelHit>50 || pixelHit<(-50)) {bolden.hastighed++;}
+				
+				this.retning = this.retning + (Math.round(pixelHit)-50);
+				errorText.value += "this.retning : " + this.retning + "\n" + "pixelHit : " + pixelHit;
+				this.x = rightPad.x-rightPad.width-bolden.hastighed-1;
+			}
+			
+			//check ude af banen
+				// Top check
+				if (this.y<0)
+				{
+					this.retning += ((360-this.retning-90)*2);
+					if (this.retning>359)
+						this.retning-=360;
+				}
+				
+				// Bund check
+				if (this.y>dcanvas.height)
+				{
+					this.retning += ((360-this.retning-90)*2);
+					if (this.retning>359)
+						this.retning-=360;
+				}
+				
+				// Sider check og score
+				if (this.x>dcanvas.width)
+				{
+					leftPad.pointsAdd();
+					if (leftPad.point>=5)
+						stopGame(); // venstre vinder
+					else
+						this.resetBold();
+				}
+				if (this.x<0)
+				{
+					rightPad.pointsAdd();
+					if (rightPad.point>=5)
+						stopGame(); // højre vinder
+					else
+					{
+						this.resetBold();
+					}
+				}
+			return true;
+		};
+		
+		this.resetBold = function() 
+		{
+			this.x = x;
+			this.y = y;
+			this.retning = 95;
+			this.hastighed = boldSpeed;
+			return true;
+		};
+		
+		this.resetBold();
+
+	};
+	
+	function Pad(x,y,width,height) 
+	{
+		this.x = x;
+		this.y = y;
+		this.point = 0;
+		this.height=height;
+		this.width = width;
+		
+		this.pointsDraw = function() 
+		{
+			dcontext.font = 'bold 60px terminal';
+			dcontext.textBaseline = 'bottom';
+			dcontext.fillText(this.point, this.x, 100);
+		};
+		
+		this.pointsAdd = function() 
+		{
+			this.point++;
+		};
+		
+		this.pointsReset = function() 
+		{
+			this.point = 0;
+		};
+		
+		this.drawPad = function() 
+		{
+			dcontext.fillStyle="#EEEEEE";
+			dcontext.fillRect(this.x,this.y,width,height);		
+		};
+		
+		this.movePadUp = function() 
+		{
+			this.y -= moveSpeed;	
+		};
+		this.movePadDown = function() 
+		{
+			this.y += moveSpeed;
+		};
+	}
+	
+		// Snyd med single-threading
+		var gameLoop = setInterval(function() 
+		{
+			// check venstre pad og flyt
+			if (leftMove>0)
+			{
+				if (leftMove==1  && leftPad.y>1)
+					leftPad.movePadUp();
+				else if (leftMove==2 && leftPad.y<dcanvas.height-padHeight-1)
+					leftPad.movePadDown();
+			}
+			
+			// check højre pad og flyt
+			if (rightMove>0)
+			{
+				if (rightMove==1 && rightPad.y>1)
+					rightPad.movePadUp();
+				else if (rightMove==2 && rightPad.y<dcanvas.height-padHeight-1)
+					rightPad.movePadDown();
+			}
+			
+			// boldlogik
+			bolden.collisionHandler(); // Checker om bolden rammer noget og ændrer retningen
+			bolden.moveBold();	// Flytter bolden til næste sted
+			reDrawAll();
+		}, 15);
+		
+		function reDrawAll()
+		{
+			dcanvas.width=dcanvas.width;
+			leftPad.drawPad();
+			leftPad.pointsDraw();
+			rightPad.drawPad();
+			rightPad.pointsDraw();
+			bolden.drawBold();
+		}
+		
+		function stopGame()
+		{
+			errorText.value += "GameStop";
+			clearInterval(gameLoop);
+			return true;
+		};
+
+</script>
+	
+</script>
+<footer>(c) 2012 Jeppe M. Led</footer>
+</body>
+</html>

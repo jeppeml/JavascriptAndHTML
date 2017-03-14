@@ -1,0 +1,131 @@
+﻿<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="windows-1252" />
+    <title>HTML5 Bacteria sim</title>
+</head>
+<body>
+    <h1>HTML5 Bacteria sim</h1>
+    <form action="javascript:" novalidate="novalidate">
+        Bakterie stÃ¸rrelse: <input type="range" id="str" step="1" value="5" min="3" max="15" onchange="javascript:startSim();" /><br />
+        <input type="button" onclick="javascript:startSim();" value="Start simulation" />
+        <input type="button" onclick="javascript:nulstil();" value="Nulstil" />
+    </form>
+    <div id="status"> </div>
+    <div id="debug" style="visibility:hidden;display:none"> </div>
+    <div id="Div1" style="visibility:hidden;display:none"> </div>
+    <canvas id="can" width="842" height="550" style="border:solid 1px black"> </canvas>
+    <script type="text/javascript">
+    var dcanvas = document.getElementById("can"), dcontext = dcanvas.getContext("2d"), tid = document.getElementById("tid"), debugElement = document.getElementById("debug"), BacteriaSize = document.getElementById("str").value, GameArea = Array(parseInt(dcanvas.width / BacteriaSize)), BacteriaArray = [], debugOn = !1, emptybacteria = new Bacteria(null, null, null, "rgb(255,255,255)", null, null, null, null);
+    debugOn && (debugElement.style.visibility = "visible", debugElement.style.display = "block");
+    nulstil();
+    GameArea[15][15] = new Bacteria("Gnarl", 15, 15, "rgb(255,128,0)", "rgb(0,0,255)", "rgb(0,255,0)", 2, 15);
+    BacteriaArray.push(GameArea[15][15]);
+    GameArea[19][19] = new Bacteria("Fliggo", 19, 19, "rgb(0,128,255)", "rgb(255,128,0)", "rgb(0,255,0)", 2, 15);
+    BacteriaArray.push(GameArea[19][19]);
+    drawGameArray();
+    Object.prototype.removeItem = function(a) {
+    this.hasOwnProperty(a) && (!isNaN(parseInt(a)) && this instanceof Array ? this.splice(a, 1) : delete this[a]);
+    };
+    function Bacteria(a, b, c, d, e, f, g, h) {
+    this.type = a;
+    this.color = d;
+    this.enemyColor = e;
+    this.symbiosisColor = f;
+    this.startLife = this.life = g;
+    this.strength = h;
+    this.x = b;
+    this.y = c;
+    this.randomnumber = 0;
+    this.newY = this.newX = -1;
+    this.die = function() {
+    GameArea[this.x][this.y] = emptybacteria;
+    BacteriaArray.removeItem(this);
+    };
+    this.grow = function() {
+    this.randomnumber = Math.floor(8 * Math.random()) + 1;
+    this.newY = this.newX = -1;
+    switch(this.randomnumber) {
+    case 1:
+    0 < b - 1 && c + 1 < parseInt(dcanvas.height / BacteriaSize) && (this.newX = b - 1, this.newY = c + 1);
+    break;
+    case 2:
+    c + 1 < parseInt(dcanvas.height / BacteriaSize) && (this.newX = b, this.newY = c + 1);
+    break;
+    case 3:
+    b + 1 < parseInt(dcanvas.width / BacteriaSize) && c + 1 < parseInt(dcanvas.height / BacteriaSize) && (this.newX = b + 1, this.newY = c + 1);
+    break;
+    case 4:
+    b + 1 < parseInt(dcanvas.width / BacteriaSize) && (this.newX = b + 1, this.newY = c);
+    break;
+    case 5:
+    b + 1 < parseInt(dcanvas.width / BacteriaSize) && 0 < c - 1 && (this.newX = b + 1, this.newY = c - 1);
+    break;
+    case 6:
+    0 < c - 1 && (this.newX = b, this.newY = c - 1);
+    break;
+    case 7:
+    0 < b - 1 && 0 < c - 1 && (this.newX = b - 1, this.newY = c - 1);
+    break;
+    case 8:
+    0 < b - 1 && (this.newX = b - 1, this.newY = c);
+    break;
+    default:
+    this.newX = this.newX = 0;
+    }
+    0 < this.newX && 0 < this.newY && GameArea[this.newX][this.newY].color != this.symbiosisColor && (GameArea[this.newX][this.newY].color == this.enemyColor ? GameArea[this.newX][this.newY].strength > this.strength ? (this.life += GameArea[this.newX][this.newY].strength - this.strength, 1 > this.life && this.die()) : GameArea[this.newX][this.newY].strength < this.strength ? (GameArea[this.newX][this.newY].life += this.strength - GameArea[b - 1][c + 1].strength, 1 > GameArea[this.newX][this.newY].life &&
+    (GameArea[this.newX][this.newY].die(), GameArea[this.newX][this.newY] = new Bacteria(this.type, this.newX, this.newY, this.color, this.enemyColor, this.symbiosisColor, this.startLife, this.strength), BacteriaArray.push(GameArea[this.newX][this.newY]))) : (this.life--, GameArea[this.newX][this.newY].life--, 1 > this.life && this.die(), 1 > GameArea[this.newX][this.newY].life && GameArea[this.newX][this.newY].die()) : "rgb(255,255,255)" == GameArea[this.newX][this.newY].color ? (GameArea[this.newX][this.newY] =
+    new Bacteria(this.type, this.newX, this.newY, this.color, this.enemyColor, this.symbiosisColor, this.startLife, this.strength), BacteriaArray.push(GameArea[this.newX][this.newY])) : GameArea[this.newX][this.newY].strength > this.strength ? this.die() : GameArea[this.newX][this.newY].strength < this.strength && GameArea[this.newX][this.newY].die());
+    this.life--;
+    1 > this.life && this.die();
+    };
+    }
+    function nulstil() {
+    GameArea = Array(parseInt(dcanvas.width / BacteriaSize));
+    for (i = 0;i < GameArea.length;i++) {
+    GameArea[i] = Array(2);
+    }
+    for (var a = 0;a < parseInt(dcanvas.width / BacteriaSize);a++) {
+    for (var b = 0;b < parseInt(dcanvas.height / BacteriaSize);b++) {
+    GameArea[a][b] = emptybacteria;
+    }
+    }
+    drawGameArray();
+    }
+    function startSim() {
+    timePass();
+    document.getElementById("status").innerHTML = "antal: " + BacteriaArray.length;
+    drawGameArray();
+    }
+    function timePass() {
+    for (var a = 0;a < BacteriaArray.length;a++) {
+    BacteriaArray[a].grow();
+    }
+    }
+    function drawGameArray() {
+    dcanvas.height += 0;
+    for (var a = 0;a < parseInt(dcanvas.width / BacteriaSize);a++) {
+    for (var b = 0;b < parseInt(dcanvas.height / BacteriaSize);b++) {
+    "rgb(255,255,255)" != GameArea[a][b].color && (dcontext.fillStyle = GameArea[a][b].color, dcontext.fillRect(parseInt(a * BacteriaSize), parseInt(b * BacteriaSize), BacteriaSize, BacteriaSize));
+    }
+    }
+    }
+    function getMousePos(a, b) {
+    var c = a.getBoundingClientRect();
+    return {x:b.clientX - c.left, y:b.clientY - c.top};
+    }
+    window.onload = function() {
+    var a = document.getElementById("can");
+    a.getContext("2d");
+    a.addEventListener("click", onClick, !1);
+    };
+    function onClick(a) {
+    a = getMousePos(dcanvas, a);
+    GameArea[parseInt(a.x / BacteriaSize)][parseInt(a.y / BacteriaSize)] = new Bacteria("Gnarl", parseInt(a.x / BacteriaSize), parseInt(a.y / BacteriaSize), "rgb(255,128,0)", "rgb(0,0,255)", "rgb(0,255,0)", 2, 15);
+    BacteriaArray.push(GameArea[parseInt(a.x / BacteriaSize)][parseInt(a.y / BacteriaSize)]);
+    drawGameArray();
+    }
+    </script>
+    <footer>(c) 2012 Jeppe M. Led</footer>
+</body>
+</html>

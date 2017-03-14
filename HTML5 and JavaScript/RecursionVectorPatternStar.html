@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Rekursive funktioner</title>
+</head>
+<body>
+    <canvas id="mitcanvas" width="800" height="600"></canvas>
+    <div id="output">virker ikke</div>
+    <script type="text/javascript">
+        var canvas = document.getElementById("mitcanvas");
+        var ctx = canvas.getContext("2d");
+        var curx = canvas.width/2;
+        var cury = canvas.height/2;
+        ctx.moveTo(curx, cury);
+        rekursivtegning(250, 15);
+        
+
+        function rekursivtegning(length, angle)
+        {
+            drawVector(length, angle);
+            if (length < 1)
+                return 1;
+            else rekursivtegning(length / 1.01, angle + 1.04);
+        }
+
+        function drawVector(length,angle)
+        {
+            var vwidth = length * (Math.cos(angle * 180 / Math.PI));
+            var vheight = length * (Math.sin(angle * 180 / Math.PI));
+            curx = curx + vwidth;
+            cury = cury + vheight;
+            ctx.lineTo(curx, cury);
+            ctx.stroke();
+        }
+
+        output.innerHTML = "Alt er godt!";
+    </script>
+</body>
+</html>
