@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>PRNG Bitmap Creator</title>
+</head>
+<body>
+    <canvas id="can" height="512" width="512"></canvas>
+    <div id="divmsg">Press button to start LCG</div>
+    <p>
+        Load LCG type: <select id="SelectLCG" name="SelectLCG" onchange="javascript:SelectLCGOption();">
+        <option value="LCGJavaUtil" selected="selected">Java.Util</option>
+        <option value="LCGPascal">Pascal/Delphi</option>
+        <option value="LCGRANDU">RANDU</option>
+        </select>
+    </p>
+    Modulus: <input id="inputM" type="number" max="18446744073709551616" min="0" step="1" value="281474976710656"/>
+    Multiplier: <input id="inputA" type="number" max="2147483647" min="0" step="1" value="25214903917"/>
+    Increment: <input id="inputC" type="number" max="2147483647" min="0" step="1" value="11"/>
+    Seed: <input id="inputSeed" type="number" max="2147483647" min="0" step="1" value="1337" onchange="javascript:drawImage();" />
+    
+    <button id="startBtn" onclick="javascript:drawImage();">Tegn billede</button>
+    <script type="text/javascript">
+    var canvas = document.getElementById("can");
+    var divmsg = document.getElementById("divmsg");
+	var inputM = document.getElementById("inputM");
+	var inputA = document.getElementById("inputA");
+	var inputC = document.getElementById("inputC");
+	var inputSeed = document.getElementById("inputSeed");
+	var inputLCGType = document.getElementById("SelectLCG");
+
+    var context = canvas.getContext("2d");
+    // divmsg.innerHTML = "Working...";
+    var imageData = context.createImageData(canvas.width, canvas.height);
+    var pixelIndex = 0;
+    var iterations = 1;
+	
+	var selectedLCG = [];
+	// Modulus: m, multiplier: a, increment: c
+	var LCGJavaUtil = { name: "JavaUtil", m: Math.pow(2, 48), a: 25214903917, c: 11, seed: 1343};
+	var LCGPascal = {name: "Pascal", m: Math.pow(2, 32), a: 134775813, c: 1, seed: 1337};
+	var LCGRANDU = {name: "RANDU", m: Math.pow(2, 31), a: 65539, c: 0, seed: 65536};
+
+	selectedLCG = LCGJavaUtil;
+	var uniM = selectedLCG.m;
+	var uniA = selectedLCG.a;
+	var uniC = selectedLCG.c;
+	var uniSeed = selectedLCG.seed;
+
+	function drawImage()
+	{
+	    uniM = Number(inputM.value);
+	    uniA = Number(inputA.value);
+	    uniC = Number(inputC.value);
+	    uniSeed = Number(inputSeed.value);
+	    //divmsg.innerHTML += "m: " + uniM + "  a:" + uniA + "  c:"+uniC + "  seed:" + uniSeed;
+	    imageData = context.createImageData(canvas.width, canvas.height);
+	    for (n = 0; n < iterations; n++) {
+	        for (x = 0; x < canvas.width; x++) {
+	            for (y = 0; y < canvas.height; y++) {
+	                    pixelIndex = 4 * (x + y * canvas.width);
+	                    imageData.data[pixelIndex] = (RandomLCGNext() * 255) / iterations;  // red   color
+	                    imageData.data[pixelIndex + 1];  // green color
+	                    imageData.data[pixelIndex + 2];  // blue  color
+	                    imageData.data[pixelIndex + 3] = 255;
+	                }
+	            }
+	        }
+	    context.putImageData(imageData, 0, 0);
+	    // divmsg.innerHTML += "Done drawing...";
+	}
+
+	function RandomLCGNext() //Pre-condition: LCG selected and seed set
+	{
+	    uniSeed = (uniA * uniSeed + uniC) % uniM;
+	    return uniSeed / uniM;
+	}
+
+	function SelectLCGOption()
+	{
+	    switch (inputLCGType.options[inputLCGType.selectedIndex].value)
+	    {
+	        case "LCGJavaUtil":
+	            selectedLCG = LCGJavaUtil;
+	            break;
+	        case "LCGPascal":
+	            selectedLCG = LCGPascal;
+	            break;
+	        case "LCGRANDU":
+	            selectedLCG = LCGRANDU;
+	            break;
+	        default:
+	            selectedLCG = LCGJavaUtil;
+	    }
+	    inputM.value = selectedLCG.m;
+	    inputA.value = selectedLCG.a;
+	    inputC.value = selectedLCG.c;
+	    inputSeed.value = selectedLCG.seed;
+	}
+    </script>
+</body>
+</html>
